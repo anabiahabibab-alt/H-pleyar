@@ -1,0 +1,6 @@
+{
+  "name": "H Player",
+  "description": "H Player - All-in-one dark & red music and video player with floating video, equalizer, synchronized lyrics, and dragon emblem.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
