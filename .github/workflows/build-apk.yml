@@ -30,6 +30,12 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Accept Android SDK licenses
+        run: |
+          if [ -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
+            yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
+          fi
+
       - name: Prepare debug keystore
         run: |
           if [ ! -f debug.keystore ]; then
@@ -66,28 +72,15 @@ jobs:
 
       - name: Publish APK to GitHub Releases (Public Download)
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          TAG="latest"
-          TITLE="H Player - Latest APK (Build #${{ github.run_number }})"
-          NOTES="Automatically built from commit \`${{ github.sha }}\` on branch \`${{ github.ref_name }}\`.
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: H Player - Latest APK (Build #${{ github.run_number }})
+          body: |
+            Automatically built from commit `${{ github.sha }}` on branch `${{ github.ref_name }}`.
 
-          ### Download & Install
-          1. Click **H-Player.apk** under **Assets** below to download.
-          2. Open the downloaded file on your Android phone and allow installation from your browser/file manager if prompted."
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -f "$TAG"
-          git push -f origin "$TAG" || true
-
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" dist/H-Player.apk --clobber
-            gh release edit "$TAG" --title "$TITLE" --notes "$NOTES" --latest
-          else
-            gh release create "$TAG" dist/H-Player.apk \
-              --title "$TITLE" \
-              --notes "$NOTES" \
-              --latest
-          fi
+            ### Download & Install
+            1. Click **H-Player.apk** under **Assets** below to download.
+            2. Open the downloaded `.apk` file on your Android device and allow installation if prompted.
+          files: dist/H-Player.apk
+          make_latest: true
